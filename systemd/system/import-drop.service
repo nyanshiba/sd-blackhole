@@ -1,0 +1,19 @@
+[Unit]
+After=network-online.target frr.service
+Wants=network-online.target
+Requires=frr.service
+
+[Service]
+Type=oneshot
+
+; Import CIDR from "DROP" https://www.spamhaus.org/blocklists/do-not-route-or-peer/ and advertise it via OSPF using FRRouting
+ExecStart=/bin/sh -c '\
+  curl -fsSL https://www.spamhaus.org/drop/drop_v4.json \
+  | jq -r ".cidr" \
+  | while read -r cidr; do \
+      ip route replace "$cidr" dev eth0 2>/dev/null || true; \
+    done \
+'
+
+[Install]
+WantedBy=multi-user.target
