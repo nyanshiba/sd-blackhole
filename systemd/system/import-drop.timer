@@ -1,0 +1,8 @@
+[Timer]
+; https://www.spamhaus.org/blocklists/do-not-route-or-peer/#how-often-should-my-system-fetch-the-drop-edrop-list
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target
