@@ -6,14 +6,29 @@ Requires=frr.service
 [Service]
 Type=oneshot
 
+; remove old routes
+ExecStart=-/sbin/ip route flush metric 666
+
 ; Import CIDR from "DROP" https://www.spamhaus.org/blocklists/do-not-route-or-peer/ and advertise it via OSPF using FRRouting
 ExecStart=/bin/sh -c '\
   curl -fsSL https://www.spamhaus.org/drop/drop_v4.json \
   | jq -r ".cidr" \
   | while read -r cidr; do \
-      ip route replace "$cidr" dev eth0 2>/dev/null || true; \
+      ip route replace "$cidr" dev eth0 metric 666 2>/dev/null || true; \
     done \
 '
+
+; Import IP from https://github.com/drb-ra/C2IntelFeeds/blob/master/feeds/IPC2s.csv
+ExecStart=/bin/sh -c '\
+  curl -fsSL https://raw.githubusercontent.com/drb-ra/C2IntelFeeds/refs/heads/master/feeds/IPC2s.csv \
+  | cut -d, -f1 \
+  | grep -v "^#" \
+  | while read -r ip; do \
+      ip route replace "$ip/32" dev eth0 metric 666 2>/dev/null || true; \
+    done \
+'
+
+ExecStartPost=/bin/sh -c 'echo "blackholing $(ip route show metric 666 | wc -l) routes"'
 
 [Install]
 WantedBy=multi-user.target
