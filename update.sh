@@ -1,6 +1,6 @@
 #!/bin/bash
 
-server=ospf.igo
+server=blackhole.igo
 if [ "$1" == "" ]; then
   daemons="frr import-drop"
 else
